@@ -13,6 +13,10 @@ PROCESSED_FOLDER = 'processed'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
+@app.route('/', methods=['GET'])
+def home():
+    return "<h1>FaringoApp Backend is Running! 🚀</h1><p>Use /health to check status.</p>"
+
 @app.route('/upload', methods=['POST'])
 def upload_video():
     if 'video' not in request.files:
