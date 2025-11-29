@@ -41,20 +41,6 @@ def calculate_polygon_area(points):
     for i in range(n):
         j = (i + 1) % n
         area += points[i][0] * points[j][1]
-        area -= points[j][0] * points[i][1]
-    return abs(area) / 2.0
-
-def process_video(input_path, output_path, lines_data=None):
-    cap = cv2.VideoCapture(input_path)
-    
-    
-    # RESULTADO A RETORNAR
-    processing_result = None
-
-    if lines_data and len(lines_data) > 0:
-        is_diamond_mode = (len(lines_data) == 1 and len(lines_data[0]) == 4)
-        
-        if is_diamond_mode:
             print("Diamond mode detected")
             diamond_points = [(int(p['x'] * width), int(p['y'] * height)) for p in lines_data[0]]
             p0 = np.array([[pt[0], pt[1]] for pt in diamond_points], dtype=np.float32).reshape(-1, 1, 2)
