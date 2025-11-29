@@ -5,19 +5,15 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    Alert,
     Linking
 } from 'react-native';
 import { Video } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 
 export default function ResultsScreen({ route, navigation }) {
     const { resultVideoUrl, serverIP, rawResponse } = route.params;
     const [videoError, setVideoError] = useState(null);
-    const [isDownloading, setIsDownloading] = useState(false);
 
-    // Build video URL - handle if resultVideoUrl is undefined
+    // Build video URL
     let videoUrl = null;
     if (resultVideoUrl) {
         videoUrl = resultVideoUrl.startsWith('http')
@@ -29,38 +25,8 @@ export default function ResultsScreen({ route, navigation }) {
         navigation.navigate('ModeSelector');
     };
 
-    const downloadVideo = async () => {
-        if (!videoUrl) {
-            Alert.alert('Error', 'No hay URL de video disponible para descargar');
-            return;
-        }
-
-        try {
-            setIsDownloading(true);
-
-            const filename = videoUrl.split('/').pop() || 'video_procesado.mp4';
-            const fileUri = FileSystem.documentDirectory + filename;
-
-            const download = await FileSystem.downloadAsync(videoUrl, fileUri);
-
-            if (download.status === 200) {
-                const canShare = await Sharing.isAvailableAsync();
-                if (canShare) {
-                    await Sharing.shareAsync(download.uri);
-                } else {
-                    Alert.alert('Éxito', `Video guardado en: ${download.uri}`);
-                }
-            }
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo descargar el video: ' + error.message);
-        } finally {
-            setIsDownloading(false);
-        }
-    };
-
     const openInBrowser = () => {
         if (!videoUrl) {
-            Alert.alert('Error', 'No hay URL de video disponible');
             return;
         }
         Linking.openURL(videoUrl);
@@ -94,48 +60,18 @@ export default function ResultsScreen({ route, navigation }) {
                 {videoError && (
                     <View style={styles.errorCard}>
                         <Text style={styles.errorText}>
-                            ⚠️ Error al cargar el video. Usa los botones de abajo para descargarlo o abrirlo.
+                            ⚠️ Error al cargar el video. Usa el botón de abajo para abrirlo en el navegador.
                         </Text>
                     </View>
                 )}
 
-                <View style={styles.buttonRow}>
-                    <TouchableOpacity
-                        style={[styles.actionButton, styles.downloadButton]}
-                        onPress={downloadVideo}
-                        disabled={isDownloading || !videoUrl}
-                    >
-                        <Text style={styles.actionButtonText}>
-                            {isDownloading ? '⏳ Descargando...' : '📥 Descargar'}
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.actionButton, styles.browserButton]}
-                        onPress={openInBrowser}
-                        disabled={!videoUrl}
-                    >
-                        <Text style={styles.actionButtonText}>🌐 Abrir en Navegador</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.debugCard}>
-                    <Text style={styles.debugTitle}>🔍 Info de Debug</Text>
-                    {videoUrl ? (
-                        <Text style={styles.debugText}>URL: {videoUrl}</Text>
-                    ) : (
-                        <>
-                            <Text style={styles.debugText}>❌ URL NO DISPONIBLE</Text>
-                            <Text style={styles.debugText}>resultVideoUrl: {resultVideoUrl || 'undefined'}</Text>
-                            <Text style={styles.debugText}>serverIP: {serverIP}</Text>
-                            {rawResponse && (
-                                <Text style={styles.debugText}>
-                                    Respuesta backend: {JSON.stringify(rawResponse, null, 2)}
-                                </Text>
-                            )}
-                        </>
-                    )}
-                </View>
+                <TouchableOpacity
+                    style={styles.browserButton}
+                    onPress={openInBrowser}
+                    disabled={!videoUrl}
+                >
+                    <Text style={styles.browserButtonText}>🌐 Abrir en Navegador</Text>
+                </TouchableOpacity>
 
                 <View style={styles.infoCard}>
                     <Text style={styles.infoTitle}>ℹ️ Información</Text>
@@ -143,7 +79,8 @@ export default function ResultsScreen({ route, navigation }) {
                         • El video muestra el tracking en tiempo real{'\n'}
                         • Panel de resumen con estadísticas de contracción{'\n'}
                         • Gráfico de área vs tiempo{'\n'}
-                        • Color del rombo indica nivel de constricción
+                        • Color del rombo indica nivel de constricción{'\n'}
+                        • Desde el navegador puedes descargar o compartir el video
                     </Text>
                 </View>
 
@@ -193,44 +130,17 @@ const styles = StyleSheet.create({
         color: '#991B1B',
         fontSize: 14
     },
-    buttonRow: {
-        flexDirection: 'row',
-        marginBottom: 16
-    },
-    actionButton: {
-        flex: 1,
-        padding: 12,
+    browserButton: {
+        backgroundColor: '#3B82F6',
+        padding: 16,
         borderRadius: 8,
         alignItems: 'center',
-        marginHorizontal: 4
-    },
-    downloadButton: {
-        backgroundColor: '#10B981'
-    },
-    browserButton: {
-        backgroundColor: '#3B82F6'
-    },
-    actionButtonText: {
-        color: 'white',
-        fontSize: 14,
-        fontWeight: '600'
-    },
-    debugCard: {
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8,
-        padding: 12,
         marginBottom: 16
     },
-    debugTitle: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#374151',
-        marginBottom: 4
-    },
-    debugText: {
-        fontSize: 11,
-        color: '#6B7280',
-        fontFamily: 'monospace'
+    browserButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600'
     },
     infoCard: {
         backgroundColor: 'white',
