@@ -48,6 +48,33 @@ def process_video(input_path, output_path, lines_data=None):
     cap = cv2.VideoCapture(input_path)
     
     if not cap.isOpened():
+        raise Exception("Could not open video file")
+        
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    
+    # Define codec - use mp4v for better Docker compatibility
+    # mp4v is more universally supported than avc1/H.264
+    print("Using mp4v codec for video encoding")
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    
+    if not out.isOpened():
+        print("mp4v codec failed, trying MJPG")
+        # MJPG usually works but produces larger files
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG') 
+        # Change extension to .avi for MJPG
+        output_path_avi = output_path.replace('.mp4', '.avi')
+        out = cv2.VideoWriter(output_path_avi, fourcc, fps, (width, height))
+        
+    if not out.isOpened():
+        raise Exception("Could not initialize video writer with any codec")
+    
+    ret, first_frame = cap.read()
+    if not ret:
+        raise Exception("Could not read first frame")
+        
     prev_gray = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
     
     # RESULTADO A RETORNAR
