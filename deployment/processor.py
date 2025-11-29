@@ -48,35 +48,6 @@ def process_video(input_path, output_path, lines_data=None):
     cap = cv2.VideoCapture(input_path)
     
     if not cap.isOpened():
-        raise Exception("Could not open video file")
-        
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    
-    # Define codec
-    # Try avc1 (H.264) first
-    fourcc = cv2.VideoWriter_fourcc(*'avc1') 
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-    
-    if not out.isOpened():
-        print("avc1 codec failed, trying mp4v")
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-        
-    if not out.isOpened():
-        print("mp4v codec failed, trying MJPG")
-        # MJPG usually works but might produce larger files
-        fourcc = cv2.VideoWriter_fourcc(*'MJPG') 
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-        
-    if not out.isOpened():
-        raise Exception("Could not initialize video writer with any codec")
-    
-    ret, first_frame = cap.read()
-    if not ret:
-        raise Exception("Could not read first frame")
-        
     prev_gray = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
     
     # RESULTADO A RETORNAR
