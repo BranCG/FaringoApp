@@ -17,18 +17,26 @@ export default function ConfigScreen({ navigation }) {
 
     const testConnection = async () => {
         if (!ip.trim()) {
-            Alert.alert('Error', 'Por favor ingresa una dirección IP');
+            Alert.alert('Error', 'Por favor ingresa una dirección IP o URL');
             return;
         }
 
         setTesting(true);
         try {
-            const response = await axios.get(`http://${ip}:5000/health`, {
+            // Helper logic duplicated here for immediate feedback (or could import from api.js if exported)
+            let baseUrl = ip.trim();
+            if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+                baseUrl = `http://${baseUrl}:5000`;
+            } else {
+                baseUrl = baseUrl.replace(/\/$/, '');
+            }
+
+            const response = await axios.get(`${baseUrl}/health`, {
                 timeout: 5000
             });
 
             if (response.status === 200) {
-                await AsyncStorage.setItem('serverIP', ip);
+                await AsyncStorage.setItem('serverIP', ip.trim());
                 Alert.alert(
                     'Éxito',
                     'Conexión exitosa al servidor',
@@ -38,7 +46,7 @@ export default function ConfigScreen({ navigation }) {
         } catch (error) {
             Alert.alert(
                 'Error de Conexión',
-                `No se pudo conectar al servidor en ${ip}:5000\n\nVerifica que:\n- El backend esté corriendo\n- Estés en la misma red Wi-Fi\n- La IP sea correcta`
+                `No se pudo conectar al servidor.\n\nVerifica que la URL/IP sea correcta.`
             );
         } finally {
             setTesting(false);
@@ -49,13 +57,13 @@ export default function ConfigScreen({ navigation }) {
         <View style={styles.container}>
             <View style={styles.card}>
                 <Text style={styles.title}>🏥 FaringoApp</Text>
-                <Text style={styles.subtitle}>Configuración del Servidor (Opcional)</Text>
+                <Text style={styles.subtitle}>Configuración del Servidor</Text>
 
                 <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Dirección IP del Servidor</Text>
+                    <Text style={styles.label}>Dirección IP o URL del Servidor</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Ej: 192.168.1.100"
+                        placeholder="Ej: https://mi-app.onrender.com"
                         value={ip}
                         onChangeText={setIp}
                         keyboardType="url"
@@ -63,7 +71,7 @@ export default function ConfigScreen({ navigation }) {
                         autoCorrect={false}
                     />
                     <Text style={styles.hint}>
-                        💡 Solo necesario para procesar videos. Puedes saltarlo por ahora.
+                        💡 Ingresa la URL de Render o la IP local de tu PC.
                     </Text>
                 </View>
 

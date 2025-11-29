@@ -1,8 +1,18 @@
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 
-export const uploadVideo = async (serverIP, videoUri, linesData, mode) => {
+// Helper to construct base URL
+const getBaseUrl = (input) => {
+    if (input.startsWith('http://') || input.startsWith('https://')) {
+        return input.replace(/\/$/, ''); // Remove trailing slash if present
+    }
+    return `http://${input}:5000`;
+};
+
+export const uploadVideo = async (serverAddress, videoUri, linesData, mode) => {
     try {
+        const baseUrl = getBaseUrl(serverAddress);
+
         // Create FormData
         const formData = new FormData();
 
@@ -19,7 +29,7 @@ export const uploadVideo = async (serverIP, videoUri, linesData, mode) => {
 
         // Make request
         const response = await axios.post(
-            `http://${serverIP}:5000/upload`,
+            `${baseUrl}/upload`,
             formData,
             {
                 headers: {
@@ -36,9 +46,10 @@ export const uploadVideo = async (serverIP, videoUri, linesData, mode) => {
     }
 };
 
-export const checkHealth = async (serverIP) => {
+export const checkHealth = async (serverAddress) => {
     try {
-        const response = await axios.get(`http://${serverIP}:5000/health`, {
+        const baseUrl = getBaseUrl(serverAddress);
+        const response = await axios.get(`${baseUrl}/health`, {
             timeout: 5000
         });
         return response.status === 200;
