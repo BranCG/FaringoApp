@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FaringoApp - QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .url {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin: 20px 0;
+            color: #333;
+        }
+        .instructions {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.8;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .step {
+            margin: 10px 0;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 FaringoApp</h1>
+        <p class="subtitle">Escanea el código QR con tu iPhone</p>
+        
+        <div id="qrcode"></div>
+        
+        <div class="url">
+            <strong>URL:</strong> exp://czmtimw-anonymous-8083.exp.direct
+        </div>
+        
+        <div class="instructions">
+            <div class="step"><strong>1.</strong> Abre <strong>Expo Go</strong> en tu iPhone</div>
+            <div class="step"><strong>2.</strong> Toca "Scan QR Code"</div>
+            <div class="step"><strong>3.</strong> Escanea el código de arriba con la cámara</div>
+            <div class="step"><strong>4.</strong> La app se cargará automáticamente</div>
+        </div>
+    </div>
+
+    <script>
+        new QRCode(document.getElementById("qrcode"), {
+            text: "exp://czmtimw-anonymous-8083.exp.direct",
+            width: 256,
+            height: 256,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    </script>
+</body>
+</html>
