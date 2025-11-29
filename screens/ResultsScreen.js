@@ -45,9 +45,19 @@ export default function ResultsScreen({ route, navigation }) {
     // Build video URL
     let videoUrl = null;
     if (resultVideoUrl) {
-        videoUrl = resultVideoUrl.startsWith('http')
-            ? resultVideoUrl
-            : `http://${serverIP}:5000${resultVideoUrl}`;
+        if (resultVideoUrl.startsWith('http')) {
+            // Already a full URL
+            videoUrl = resultVideoUrl;
+        } else {
+            // Relative path - need to construct full URL
+            if (serverIP.startsWith('http://') || serverIP.startsWith('https://')) {
+                // Server is a full URL (like Render)
+                videoUrl = `${serverIP.replace(/\/$/, '')}${resultVideoUrl}`;
+            } else {
+                // Server is just an IP address (local development)
+                videoUrl = `http://${serverIP}:5000${resultVideoUrl}`;
+            }
+        }
     }
 
     const processAnother = () => {
