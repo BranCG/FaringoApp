@@ -9,6 +9,35 @@ import {
 } from 'react-native';
 import { Video } from 'expo-av';
 
+// Function to generate automatic analysis
+const generateAnalysis = (stats) => {
+    if (!stats) return '';
+
+    const constriction = stats.constriction_percentage || 0;
+
+    let level = '';
+    let recommendation = '';
+
+    if (constriction < 20) {
+        level = 'Constricción leve';
+        recommendation = 'La contracción observada está dentro de rangos normales. Continuar con el seguimiento regular.';
+    } else if (constriction < 40) {
+        level = 'Constricción moderada';
+        recommendation = 'Se observa una contracción moderada. Puede requerir atención según el contexto clínico.';
+    } else if (constriction < 60) {
+        level = 'Constricción significativa';
+        recommendation = 'La contracción es considerable. Se recomienda evaluación clínica detallada.';
+    } else {
+        level = 'Constricción severa';
+        recommendation = 'Se observa contracción severa. Se recomienda consulta especializada inmediata.';
+    }
+
+    const variance = stats.area_variance || 0;
+    const variability = variance > 200 ? 'alta variabilidad' : variance > 100 ? 'variabilidad moderada' : 'variabilidad baja';
+
+    return `${level} detectada (${constriction.toFixed(1)}%). ${recommendation}\n\nSe observa ${variability} en el área durante el video, lo que indica ${variance > 150 ? 'movimiento dinámico significativo' : 'movimiento relativamente estable'}.`;
+};
+
 export default function ResultsScreen({ route, navigation }) {
     const { resultVideoUrl, serverIP, rawResponse } = route.params;
     const [videoError, setVideoError] = useState(null);
@@ -72,6 +101,57 @@ export default function ResultsScreen({ route, navigation }) {
                 >
                     <Text style={styles.browserButtonText}>🌐 Abrir en Navegador</Text>
                 </TouchableOpacity>
+
+                {/* Statistics Section */}
+                {rawResponse && rawResponse.statistics && (
+                    <>
+                        <View style={styles.statsCard}>
+                            <Text style={styles.statsTitle}>📊 Estadísticas de Contracción</Text>
+
+                            <View style={styles.statsGrid}>
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statIcon}>🔴</Text>
+                                    <Text style={styles.statLabel}>Constricción Máx</Text>
+                                    <Text style={styles.statValue}>
+                                        {rawResponse.statistics.constriction_percentage?.toFixed(1)}%
+                                    </Text>
+                                </View>
+
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statIcon}>📉</Text>
+                                    <Text style={styles.statLabel}>Apertura Mínima</Text>
+                                    <Text style={styles.statValue}>
+                                        {((rawResponse.statistics.min_area / (rawResponse.statistics.max_area || 1)) * 100).toFixed(1)}%
+                                    </Text>
+                                </View>
+
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statIcon}>📈</Text>
+                                    <Text style={styles.statLabel}>Apertura Máxima</Text>
+                                    <Text style={styles.statValue}>
+                                        100%
+                                    </Text>
+                                </View>
+
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statIcon}>📊</Text>
+                                    <Text style={styles.statLabel}>Apertura Promedio</Text>
+                                    <Text style={styles.statValue}>
+                                        {((rawResponse.statistics.avg_area / (rawResponse.statistics.max_area || 1)) * 100).toFixed(1)}%
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Analysis Section */}
+                        <View style={styles.analysisCard}>
+                            <Text style={styles.analysisTitle}>🔍 Análisis Automático</Text>
+                            <Text style={styles.analysisText}>
+                                {generateAnalysis(rawResponse.statistics)}
+                            </Text>
+                        </View>
+                    </>
+                )}
 
                 <View style={styles.infoCard}>
                     <Text style={styles.infoTitle}>ℹ️ Información</Text>
@@ -142,6 +222,74 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600'
     },
+    // Statistics Card
+    statsCard: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3
+    },
+    statsTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1F2937',
+        marginBottom: 16
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between'
+    },
+    statItem: {
+        width: '48%',
+        backgroundColor: '#F9FAFB',
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 12,
+        alignItems: 'center'
+    },
+    statIcon: {
+        fontSize: 28,
+        marginBottom: 8
+    },
+    statLabel: {
+        fontSize: 12,
+        color: '#6B7280',
+        marginBottom: 4,
+        textAlign: 'center'
+    },
+    statValue: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1F2937',
+        textAlign: 'center'
+    },
+    // Analysis Card
+    analysisCard: {
+        backgroundColor: '#EFF6FF',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#3B82F6'
+    },
+    analysisTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1E40AF',
+        marginBottom: 8
+    },
+    analysisText: {
+        fontSize: 14,
+        color: '#1F2937',
+        lineHeight: 22
+    },
+    // Info Card
     infoCard: {
         backgroundColor: 'white',
         borderRadius: 12,
