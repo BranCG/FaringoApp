@@ -31,4 +31,4 @@ RUN mkdir -p uploads processed
 EXPOSE 10000
 
 # Comando para ejecutar la aplicación con Gunicorn (servidor de producción)
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "600", "--workers", "2", "app:app"]
