@@ -55,16 +55,13 @@ def process_video(input_path, output_path, lines_data=None):
     fps = cap.get(cv2.CAP_PROP_FPS)
     
     # Define codec - use mp4v for better Docker compatibility
-    # mp4v is more universally supported than avc1/H.264
     print("Using mp4v codec for video encoding")
     fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
     
     if not out.isOpened():
         print("mp4v codec failed, trying MJPG")
-        # MJPG usually works but produces larger files
         fourcc = cv2.VideoWriter_fourcc(*'MJPG') 
-        # Change extension to .avi for MJPG
         output_path_avi = output_path.replace('.mp4', '.avi')
         out = cv2.VideoWriter(output_path_avi, fourcc, fps, (width, height))
         
@@ -162,6 +159,100 @@ def process_video(input_path, output_path, lines_data=None):
                     
                     # Summary Panel
                     cv2.rectangle(frame, (20, 20), (300, 160), (255, 255, 255), 2)
+                    cv2.putText(frame, "RESUMEN", (30, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                    cv2.putText(frame, f"Area: {percentage:.1f}%", (30, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+                    cv2.putText(frame, f"Max: 100%", (30, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                    cv2.putText(frame, f"Min: {min(percentages):.1f}%", (30, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+                    
+                    out.write(frame)
+        else:
+            # Polyline mode - track multiple contours
+            print(f"Polyline mode detected with {len(lines_data)} contours")
+            
+            # Initialize tracking for all polylines
+            all_polylines = []
+            colors = [
+                (255, 0, 0),    # Blue
+                (0, 255, 0),    # Green
+                (0, 0, 255),    # Red
+                (255, 255, 0),  # Cyan
+                (255, 0, 255),  # Magenta
+                (0, 255, 255),  # Yellow
+            ]
+            
+            for line_idx, line in enumerate(lines_data):
+                polyline_points = [(int(p['x'] * width), int(p['y'] * height)) for p in line]
+                p0 = np.array([[pt[0], pt[1]] for pt in polyline_points], dtype=np.float32).reshape(-1, 1, 2)
+                color = colors[line_idx % len(colors)]
+                all_polylines.append({
+                    'points': p0,
+                    'color': color,
+                    'tracked_frames': []
+                })
+            
+            lk_params = dict(winSize=(21, 21), maxLevel=3, 
+                           criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 20, 0.03))
+            
+            # Track all polylines through video
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                
+                for polyline in all_polylines:
+                    p0 = polyline['points']
+                    if p0 is not None and len(p0) > 0:
+                        p1, st, err = cv2.calcOpticalFlowPyrLK(prev_gray, frame_gray, p0, None, **lk_params)
+                        
+                        if p1 is not None and np.sum(st) >= len(p0) * 0.7:  # At least 70% points tracked
+                            good_new = p1[st == 1]
+                            polyline['points'] = p1.copy()
+                            polyline['tracked_frames'].append([(int(pt[0]), int(pt[1])) for pt in p1.reshape(-1, 2)])
+                        else:
+                            # Keep last known position
+                            if len(polyline['tracked_frames']) > 0:
+                                polyline['tracked_frames'].append(polyline['tracked_frames'][-1])
+                
+                prev_gray = frame_gray.copy()
+            
+            # Second pass: draw visualization
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            frame_idx = 0
+            
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                # Draw all tracked polylines
+                for polyline in all_polylines:
+                    if frame_idx < len(polyline['tracked_frames']):
+                        points = polyline['tracked_frames'][frame_idx]
+                        
+                        # Draw polyline
+                        pts = np.array(points, dtype=np.int32).reshape((-1, 1, 2))
+                        cv2.polylines(frame, [pts], False, polyline['color'], 3, cv2.LINE_AA)
+                        
+                        # Draw points
+                        for pt in points:
+                            cv2.circle(frame, pt, 4, polyline['color'], -1)
+                            cv2.circle(frame, pt, 6, (255, 255, 255), 1)
+                
+                out.write(frame)
+                frame_idx += 1
+
+    else:
+        # No lines provided - just copy the video
+        print("No tracking data provided, copying video")
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            out.write(frame)
+        
+    cap.release()
     out.release()
     
     return processing_result
