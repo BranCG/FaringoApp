@@ -3,7 +3,8 @@ import {
     View,
     Text,
     TouchableOpacity,
-    StyleSheet
+    StyleSheet,
+    Linking
 } from 'react-native';
 
 export default function ModeSelector({ navigation }) {
@@ -38,7 +39,15 @@ export default function ModeSelector({ navigation }) {
                     Dibuja múltiples contornos para trackear estructures laríngeas
                 </Text>
             </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.privacyButton}
+                onPress={() => Linking.openURL('https://faringoapp.onrender.com/privacy')}
+            >
+                <Text style={styles.privacyButtonText}>🔒 Política de Privacidad</Text>
+            </TouchableOpacity>
+        </View >
     );
 }
 
@@ -97,5 +106,15 @@ const styles = StyleSheet.create({
         color: '#4B5563',
         textAlign: 'center',
         lineHeight: 20
+    },
+    privacyButton: {
+        marginTop: 'auto',
+        padding: 15,
+        alignItems: 'center',
+    },
+    privacyButtonText: {
+        color: '#6B7280',
+        fontSize: 14,
+        textDecorationLine: 'underline'
     }
 });
