@@ -162,21 +162,6 @@ def process_video(input_path, output_path, lines_data=None):
                     
                     # Summary Panel
                     cv2.rectangle(frame, (20, 20), (300, 160), (255, 255, 255), 2)
-                    cv2.putText(frame, "RESUMEN", (30, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                    cv2.putText(frame, f"Area: {percentage:.1f}%", (30, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
-                    cv2.putText(frame, f"Max: 100%", (30, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-                    cv2.putText(frame, f"Min: {min(percentages):.1f}%", (30, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-                    
-                    out.write(frame)
-        else:
-            # Polyline mode (simplificado para brevedad, mantener tu código original si lo usas)
-            pass
-
-    else:
-        # Optical flow mode (simplificado)
-        pass
-        
-    cap.release()
     out.release()
     
     return processing_result
