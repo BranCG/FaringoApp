@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     StyleSheet,
     Alert,
-    ActivityIndicator
+    ActivityIndicator,
+    Linking
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -93,6 +94,13 @@ export default function ConfigScreen({ navigation }) {
                 >
                     <Text style={styles.skipButtonText}>Saltar (configurar después)</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.privacyButton}
+                    onPress={() => Linking.openURL('https://faringoapp.onrender.com/privacy')}
+                >
+                    <Text style={styles.privacyButtonText}>🔒 Política de Privacidad</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -173,6 +181,18 @@ const styles = StyleSheet.create({
     skipButtonText: {
         color: '#6B7280',
         fontSize: 14,
-        textDecoration: 'underline'
+        textDecorationLine: 'underline'
+    },
+    privacyButton: {
+        marginTop: 20,
+        padding: 10,
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#E5E7EB'
+    },
+    privacyButtonText: {
+        color: '#4F46E5',
+        fontSize: 12,
+        fontWeight: '500'
     }
 });
