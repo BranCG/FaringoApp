@@ -7,21 +7,6 @@ import json
 
 app = Flask(__name__)
 CORS(app)
-
-UPLOAD_FOLDER = 'uploads'
-PROCESSED_FOLDER = 'processed'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(PROCESSED_FOLDER, exist_ok=True)
-
-@app.route('/', methods=['GET'])
-def home():
-    return "<h1>FaringoApp Backend is Running! 🚀</h1><p>Use /health to check status.</p>"
-
-@app.route('/upload', methods=['POST'])
-def upload_video():
-    if 'video' not in request.files:
-        return jsonify({'error': 'No video file provided'}), 400
-    
     file = request.files['video']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
